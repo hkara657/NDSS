@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
-#define PORT 8095
+#define PORT 8088
 #include<sys/unistd.h>
 #include<arpa/inet.h>
 int main(int argc, char const *argv[])
@@ -31,8 +31,7 @@ int main(int argc, char const *argv[])
         exit(EXIT_FAILURE);
     }
     address.sin_family = AF_INET;
-    address.sin_addr.s_addr = inet_addr("10.192.32.14");
-    //address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons( PORT );
       
     // Forcefully attaching socket to the port 8080
@@ -62,7 +61,5 @@ int main(int argc, char const *argv[])
     valread = read( new_socket , buffer, 1024);
     printf("%s\n",buffer );
  
- valread = read( new_socket , buffer, 1024);
-    printf("%s\n",buffer );
     return 0;
 }

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
-#define PORT 8095
+#define PORT 8088
 #include<sys/unistd.h>
 #include<arpa/inet.h>
 int main(int argc, char const *argv[])
@@ -24,10 +24,9 @@ int main(int argc, char const *argv[])
   
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT);
-    serv_addr.sin_addr.s_addr = inet_addr("10.192.32.14");
-    
+      
     // Convert IPv4 and IPv6 addresses from text to binary form
-    if(inet_pton(AF_INET, "10.192.32.14", &serv_addr.sin_addr)<=0) 
+    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) 
     {
         printf("\nInvalid address/ Address not supported \n");
         return -1;
@@ -35,8 +34,8 @@ int main(int argc, char const *argv[])
   
     if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
-        printf("\nConnection Failed out\n");
-        //return -1;
+        printf("\nConnection Failed \n");
+        return -1;
     }
     send(sock , hello , strlen(hello) , 0 );
     printf("Hello message sent\n");
@@ -47,6 +46,6 @@ int main(int argc, char const *argv[])
     char *mm=(char *)"harsh kara from client\n";
     send(sock, mm,strlen(mm),0);
     char *mm2=(char *)"harsh kara from client again\n";
-    send(sock, mm2,strlen(mm2),0);
+    send(sock, mm2,strlen(mm),0);
     return 0;
 }
