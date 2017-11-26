@@ -1,0 +1,34 @@
+The existing implementation of AES is used from openssl crypto library - EVP Symmetric Encryption and Decryption
+
+Reference - https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
+
+
+We conduct 4 different types of tests - 
+
+1. Known Answer Test (KAT)       - Tests the correctness of AES implementation using single block messages (128 bit messages).
+
+2. Multiblock Message Test (MMT) - Tests the correctness of OFB mode of AES using multi block messages (128, 256, 384 and 512 bit messages).
+
+3. Monte-Carlo Tests (MCT)       - Tests the pseudorandomness of OFB mode by generating 100 pseudo-random tests.
+
+4. Statistical Tests             - These tests include the Frequency Test, Serial Test and Poker Test. All of them test the randomness of the ciphertext output by AES OFB mode. 
+					Frequency Test checks for roughly equal number of 0's and 1's in the ciphertext.
+					Serial Test checks for roughly equal number of 00's, 01's, 10's and 11's in the ciphertext.
+					Poker Test checks for roughly equal number of non-overlapping 000's, 001's, 010's, 011's, 100's, 101's, 110's and 111's in the ciphertext.
+				All of them output a statistic value that should obey a particular chi-square distribution.
+
+
+KAT, MMT and MCT tests are taken from the Advanced Encryption Standard Algorithm Validation System(AESAVS) 
+
+References - 
+http://csrc.nist.gov/groups/STM/cavp/block-ciphers.html#aesvs
+
+http://csrc.nist.gov/groups/STM/cavp/documents/aes/AESAVS.pdf
+
+
+
+Statistical Test are taken from Handbook of Cryptography chapter 5 (section 5.4.4)
+
+
+For each test, we take the appropriate input from the Test vectors and match it with the corresponding output from the Test vector response files.
+

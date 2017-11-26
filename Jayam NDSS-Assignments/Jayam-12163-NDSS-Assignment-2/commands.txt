@@ -1,0 +1,31 @@
+gcc aes_128_MMT.c -lcrypto
+./a.out
+gcc aes_192_MMT.c -lcrypto
+./a.out
+gcc aes_256_MMT.c -lcrypto
+./a.out
+
+
+gcc aes_128_KAT.c -lcrypto
+./a.out
+gcc aes_192_KAT.c -lcrypto
+./a.out
+gcc aes_256_KAT.c -lcrypto
+./a.out
+
+
+gcc aes_128_MCT.c -lcrypto
+./a.out
+gcc aes_192_MCT.c -lcrypto
+./a.out
+gcc aes_256_MCT.c -lcrypto
+./a.out
+
+
+gcc aes_128_stat.c -lcrypto
+./a.out
+gcc aes_192_stat.c -lcrypto
+./a.out
+gcc aes_256_stat.c -lcrypto
+./a.out
+
