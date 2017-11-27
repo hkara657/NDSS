@@ -101,9 +101,10 @@ int main(int argc, char const *argv[])
 	
 	BigInt A = modpow(g, a, p);  // g^a mod p   sent by A to B
 	
+	send_message( convert_to_char_pointer(A) );  //sending A
 	BigInt B = Integer( get_message()  );  // receiving B
 	
-	send_message( convert_to_char_pointer(A) );  //sending A
+	
 	
 	
 	
