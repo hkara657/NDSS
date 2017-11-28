@@ -83,6 +83,7 @@ char* get_message()
 
 int main(int argc, char const *argv[])
 {
+    srand(time(NULL));
     
 	make_connection();
 	cout<<"Connection Established Successfully \n";
@@ -110,5 +111,7 @@ int main(int argc, char const *argv[])
 	
 	BigInt final_key = modpow(B, a, p);
 	cout<<"key with Alice is    ";	cout<<final_key;	EL;
+	
+	
     return 0;
 }

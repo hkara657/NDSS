@@ -58,6 +58,8 @@ char* get_message()
 }
 int main(int argc, char const *argv[])
 {
+	srand(time(NULL));
+	
 	make_connection();
 	cout<<"Connection Established Successfully \n";
 
