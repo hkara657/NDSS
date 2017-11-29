@@ -190,11 +190,11 @@ int main(int argc, char const *argv[])
 	cout<<"\a B computed is  ";	printPair(B);
 	
 	
-	//~ BigPair A = make_pair(zero,zero);
-	//~ A.X = Integer( get_message() );  // receiving A
-	//~ cout<<"A.X is ";cout<<A.X;EL;
-	//~ A.Y = Integer( get_message() );  // receiving A
-	//~ cout<<"A.Y is ";cout<<A.Y;EL;
+	BigPair A = make_pair(zero,zero);
+	A.X = Integer( get_message() );  // receiving A
+	cout<<"A.X is ";cout<<A.X;EL;
+	A.Y = Integer( get_message() );  // receiving A
+	cout<<"A.Y is ";cout<<A.Y;EL;
 	//~ cout<<"\a A received is  ";	printPair(A);
 	
 	send_message( convert_to_char_pointer(B.X) );  //sending B
@@ -202,8 +202,8 @@ int main(int argc, char const *argv[])
 	send_message( convert_to_char_pointer(B.Y) );  //sending B
 	cout<<"sent b.y";EL;
 	
-	//~ BigPair final_key = ecc_mult(A,tb);
-	//~ cout<<"\a key with Bob is    ";	printPair(final_key);	EL;
+	BigPair final_key = ecc_mult(A,tb);
+	cout<<"\a key with Bob is    ";	printPair(final_key);	EL;
 	
     return 0;
 }

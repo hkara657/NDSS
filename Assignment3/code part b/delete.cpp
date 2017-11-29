@@ -26,8 +26,8 @@ BigPair ecc_add_util( BigPair P, BigPair Q, BigInt m)
 	BigPair ans = make_pair(zero,zero);
 	//~ ans.X = m*m - (P.X + Q.X);
 	//~ ans.Y = m*(P.X-ans.X) - P.Y;
-	ans.X = ( ((m*m) + MOD + MOD + MOD) - (P.X%MOD + Q.X%MOD)%MOD )%MOD;    //MOD is added because -ve BIGINT is not defined
-	ans.Y = ( m*(((P.X + MOD) - ans.X) + MOD) - P.Y%MOD )%MOD;
+	ans.X = ( (m*m) + 2*MOD - (P.X + Q.X) )%MOD;    //MOD is added because -ve BIGINT is not defined
+	ans.Y = ( m*( P.X + MOD - ans.X) + MOD - P.Y )%MOD;
 	return ans;
 }
 
@@ -59,9 +59,9 @@ BigPair ecc_add(BigPair P, BigPair Q)
 	
 	if(Q.X==inf)
 	return P;
-	
 	//~ BigInt m = (Q.Y-P.Y) / (Q.X-P.X);
-	BigInt m = ( (Q.Y + MOD - P.Y) * modpow( (Q.X + MOD -P.X), MOD-2, MOD )  )%MOD;
+	BigInt m = ( (Q.Y + MOD - P.Y) * modpow( (Q.X + MOD - P.X), MOD-2, MOD )  )%MOD;
+	
 	return ecc_add_util(P, Q, m);	
 }
 
@@ -90,9 +90,9 @@ int main()
 		
 	BigPair G = make_pair( Integer("2"), Integer("4") );
 	
-	BigInt xx=Integer("9");
-	//~ printPair(point_double(G));
+	BigInt xx=Integer("3");
 	BigPair ans = ecc_mult(G,xx);
 	printPair(ans);
+	
 	
 }

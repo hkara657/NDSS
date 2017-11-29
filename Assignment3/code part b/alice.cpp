@@ -13,20 +13,115 @@
 #define BigPair pair<BigInt,BigInt>
 #define zero Integer(0)
 #define one Integer(1)
-
-BigPair G = make_pair( Integer("602046282375688656758213480587526111916698976636884684818"), Integer("174050332293622031404857552280219410364023488927386650641") );
-BigInt MOD = Integer("6277101735386680763835789423207666416083908700390324961279"); // or p
-BigInt a = MOD-Integer("3");  // a is -3, but since we cannot represent -ve in bigint we do it -3
-//~ BigInt b = Integer("2455155546008943817740293915197451784769108058161191238065");
-//~ BigInt n = Integer("6277101735386680763835789423176059013767194773182842284081");
-
 BigInt inf = Integer("100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");  // just to represent infinity
 BigPair ecc_INF = make_pair(inf,inf);
 
+BigPair G=make_pair(zero,zero);
+BigInt MOD,a,b,n;
+//-----------------------------a = MOD-Integer("3");  // a is -3, but since we cannot represent -ve in bigint
 
-int socket_id;
 int num_bits=512;
+int socket_id;
 
+void printPair(BigPair P);
+void initialize_ecc_group(string filename)
+{
+	ifstream fin(filename);
+	
+	string inp[6];
+	int i=0;
+	
+	string line;
+	while( std::getline( fin, line ) ) // for each line read from the file
+	{
+		inp[i]=line;
+		i++;
+	}
+	
+    G.X=Integer(inp[0]);
+    G.Y=Integer(inp[1]);
+    MOD=Integer(inp[2]);
+    
+    if(inp[3][0]!='-')
+		a = Integer(inp[3]);
+	else
+		a = MOD-Integer(inp[3].substr(1));  // bcz we can't represent -ve numbers in BigINt datatype
+		
+    b= (inp[4][0]=='-'? MOD-Integer(inp[4].substr(1)) : Integer(inp[4]) );//not needed, here also handle -ve case
+    n=Integer(inp[5]);//not needed
+}
+//--------------------------------------------ecc part starts
+void printPair(BigPair P)
+{
+	cout<<"The point is \n";
+	cout<<"X cordinate is ";cout<<P.X;
+	EL;
+	cout<<"Y cordinate is ";cout<<P.Y;
+	EL;
+}
+BigPair ecc_add_util( BigPair P, BigPair Q, BigInt m)
+{
+	BigPair ans = make_pair(zero,zero);
+	//~ ans.X = m*m - (P.X + Q.X);
+	//~ ans.Y = m*(P.X-ans.X) - P.Y;
+	ans.X = ( (m*m) + 2*MOD - (P.X + Q.X) )%MOD;    //2*MOD is added because -ve BIGINT is not defined
+	ans.Y = ( m*(P.X + MOD - ans.X) + MOD - P.Y )%MOD;
+	return ans;
+}
+
+BigPair point_double(BigPair P)
+{
+	if(P.Y==0) // in point doubling if Y cordinate is 0 then point doubling is INFINITY
+	return ecc_INF;
+	
+	//~ BigInt m = (3*P.X*P.X + a) / (2*P.Y);
+	BigInt m = ( (3*P.X*P.X + a) * modpow( (2*P.Y), MOD-2, MOD )  )%MOD;
+	return ecc_add_util(P, P, m);	
+}
+
+BigPair ecc_add(BigPair P, BigPair Q)
+{
+	//checking if same points
+	if(P.X==Q.X && P.Y==Q.Y)
+	return point_double(P);
+	
+	//checking if vertical points i.e. points not equal but are vertically aligned i.e. same x cordinate, then addition answer is INIFNITY
+	if(P.X==Q.X)
+	return ecc_INF;
+	
+	//zero element added with x gives x. here P is zero element so answer is Q
+	if(P.X==inf)
+	return Q;
+	
+	if(Q.X==inf)
+	return P;
+	
+	//~ BigInt m = (Q.Y-P.Y) / (Q.X-P.X);
+	BigInt m = ( (Q.Y + MOD - P.Y) * modpow( (Q.X + MOD -P.X), MOD-2, MOD )  )%MOD;
+	return ecc_add_util(P, Q, m);	
+}
+
+BigPair ecc_mult(BigPair P, BigInt k)
+{
+	if(k==0)
+	return ecc_INF;
+	
+	if(k==one)
+	return P;
+	
+	BigPair ans = ecc_mult(P, k/2);
+	
+	if( ans.X != inf )
+	ans = point_double(ans) ;
+	
+	if(k%2 == 1)
+	ans = ecc_add(ans, P) ;
+	
+	return ans;
+}
+//--------------------------------------------ecc part ends
+
+//--------------------------------------------connection part starts
 void make_connection()
 {
 	int server_fd;
@@ -94,38 +189,49 @@ char* get_message()
 	read( socket_id , msg, 1024);
 	return msg;
 }
+//--------------------------------------------connection part ends
+
 
 int main(int argc, char const *argv[])
 {
+	cout<<"ALICE\n";
     srand(time(NULL));
     
+    initialize_ecc_group("abc.txt");
+    
 	make_connection();
-	cout<<"Connection Established Successfully \n";
-	
-	string s;
-	ifstream in("prime.txt");
-	in>>s;
-	BigInt p = Integer(s);
-	
-	ifstream in2("generator.txt");
-	in2>>s;
-	BigInt g = Integer(s);
-
-	
-	BigInt a = random_primes(num_bits/2);  // secret key of Alice
-	
-	BigInt A = modpow(g, a, p);  // g^a mod p   sent by A to B
-	
-	send_message( convert_to_char_pointer(A) );  //sending A
-	BigInt B = Integer( get_message()  );  // receiving B
+	//~ BigInt x=Integer("333440208723641738484533501639659274606292286602132017367");
+	//~ cout<<convert_to_char_pointer(x);
+	//~ send_message( convert_to_char_pointer(x) );
+	//~ return 0;
 	
 	
 	
+	//~ cout<<get_message();
+	cout<<"\a Connection Established Successfully \n";
+	
+	BigInt ta = random_primes(num_bits/2);  // secret key of Alice
+	
+	BigPair A = ecc_mult(G,ta);  // ta*G % MOD   sent by A to B
+	cout<<"\a A computed is  ";printPair(A);
+	
+	send_message( convert_to_char_pointer(A.X) );  //sending A
+	cout<<"sent a.x";EL;
+	send_message( convert_to_char_pointer(A.Y) );  //sending A
+	cout<<"sent b.x";EL;
 	
 	
-	BigInt final_key = modpow(B, a, p);
-	cout<<"key with Alice is    ";	cout<<final_key;	EL;
+	BigPair B = make_pair(zero,zero);
+	B.X = Integer( get_message() );  // receiving B
+	cout<<"B.X is ";cout<<B.X;
 	
+	B.Y = Integer( get_message() );  // receiving B
+	cout<<"B.Y is ";cout<<B.Y;
+	//~ cout<<"\a B received is  ";printPair(B);
+	
+	
+	BigPair final_key = ecc_mult(B,ta);
+	cout<<"\a key with Alice is    ";	printPair(final_key);	EL;
 	
     return 0;
 }

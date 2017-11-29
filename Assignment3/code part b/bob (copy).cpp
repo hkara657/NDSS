@@ -21,7 +21,7 @@ BigInt MOD,a,b,n;
 //-----------------------------a = MOD-Integer("3");  // a is -3, but since we cannot represent -ve in bigint
 
 
-int num_bits=512;
+int num_bits=128;
 int socket_id = 0;
 void printPair(BigPair P);
 void initialize_ecc_group(string filename)
@@ -162,8 +162,8 @@ void send_message(char* msg)
 
 char* get_message()
 {
-	char *msg=(char *)malloc(1024*sizeof(char));
-	read( socket_id , msg, 1024);
+	char *msg=(char *)malloc(5024*sizeof(char));
+	read( socket_id , msg, 5024);
 	return msg;
 }
 //--------------------------------------------connection part ends
@@ -177,33 +177,35 @@ int main(int argc, char const *argv[])
     
 	make_connection();
 	
-	//~ cout<<Integer(get_message());
-	//~ return 0;
-	//~ char ch[]="kara\0";
-	//~ send_message(ch);
 	
 	cout<<"\a Connection Established Successfully \n";
 	
-	BigInt tb = random_primes(num_bits/20);  // secret key of Bob
+	BigInt tb = random_primes(num_bits/2);  // secret key of Bob
 	
 	BigPair B = ecc_mult(G,tb);  // tb*G % MOD   sent by B to A
 	cout<<"\a B computed is  ";	printPair(B);
 	
 	
-	//~ BigPair A = make_pair(zero,zero);
-	//~ A.X = Integer( get_message() );  // receiving A
-	//~ cout<<"A.X is ";cout<<A.X;EL;
-	//~ A.Y = Integer( get_message() );  // receiving A
-	//~ cout<<"A.Y is ";cout<<A.Y;EL;
-	//~ cout<<"\a A received is  ";	printPair(A);
+	
 	
 	send_message( convert_to_char_pointer(B.X) );  //sending B
 	cout<<"sent b.x";EL;
+	
+	BigPair A = make_pair(zero,zero);
+	A.X = Integer( get_message() );  // receiving A
+	cout<<"A.X is ";cout<<A.X; EL;
+	
 	send_message( convert_to_char_pointer(B.Y) );  //sending B
 	cout<<"sent b.y";EL;
 	
-	//~ BigPair final_key = ecc_mult(A,tb);
-	//~ cout<<"\a key with Bob is    ";	printPair(final_key);	EL;
+	A.Y = Integer( get_message() );  // receiving A
+	cout<<"A.Y is ";cout<<A.Y;EL;
+	
+	
+	
+	
+	BigPair final_key = ecc_mult(A,tb);
+	cout<<"\a key with Bob is    ";	printPair(final_key);	EL;
 	
     return 0;
 }
