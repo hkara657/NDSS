@@ -4,8 +4,8 @@
 #define zero Integer(0)
 #define one Integer(1)
 
-BigInt MOD = Integer("6277101735386680763835789423207666416083908700390324961279"); // or p
-BigInt a = MOD-Integer("3");  // a is -3, but since we cannot represent -ve in bigint we do it -3
+BigInt MOD = Integer("61"); // or p
+BigInt a = Integer("2");  // a is -3, but since we cannot represent -ve in bigint we do it -3
 //~ BigInt b = Integer("2455155546008943817740293915197451784769108058161191238065");
 //~ BigInt n = Integer("6277101735386680763835789423176059013767194773182842284081");
 
@@ -26,8 +26,8 @@ BigPair ecc_add_util( BigPair P, BigPair Q, BigInt m)
 	BigPair ans = make_pair(zero,zero);
 	//~ ans.X = m*m - (P.X + Q.X);
 	//~ ans.Y = m*(P.X-ans.X) - P.Y;
-	ans.X = ( (m*m) + MOD - (P.X + Q.X) )%MOD;    //MOD is added because -ve BIGINT is not defined
-	ans.Y = ( m*(P.X + MOD - ans.X) + MOD - P.Y )%MOD;
+	ans.X = ( ((m*m) + MOD + MOD + MOD) - (P.X%MOD + Q.X%MOD)%MOD )%MOD;    //MOD is added because -ve BIGINT is not defined
+	ans.Y = ( m*(((P.X + MOD) - ans.X) + MOD) - P.Y%MOD )%MOD;
 	return ans;
 }
 
@@ -86,10 +86,11 @@ int main()
 {
 	//BigInt p = Integer("6277101735386680763835789423207666416083908700390324961279");
 		
-	BigPair G = make_pair( Integer("602046282375688656758213480587526111916698976636884684818"), Integer("174050332293622031404857552280219410364023488927386650641") );
+	BigPair G = make_pair( Integer("2"), Integer("4") );
 	
-	BigInt xx=Integer("2818646689284967968603885680739626753757717668743685369");
-	BigPair ans = ecc_mult(G,xx);
-	printPair(ans);
+	BigInt xx=Integer("2");
+	printPair(point_double(G));
+	//~ BigPair ans = ecc_mult(G,xx);
+	//~ printPair(ans);
 	
 }
