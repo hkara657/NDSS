@@ -36,8 +36,10 @@ BigPair point_double(BigPair P)
 	if(P.Y==0) // in point doubling if Y cordinate is 0 then point doubling is INFINITY
 	return ecc_INF;
 	
-	//~ BigInt m = (3*P.X + a) / (2*P.Y);
-	BigInt m = ( (3*P.X + a) * modpow( (2*P.Y), MOD-2, MOD )  )%MOD;
+	//~ BigInt m = (3*P.X*P.X + a) / (2*P.Y);
+	
+	BigInt m = ( (3*P.X*P.X + a) * modpow( (2*P.Y), MOD-2, MOD )  )%MOD;
+	
 	return ecc_add_util(P, P, m);	
 }
 
@@ -88,9 +90,9 @@ int main()
 		
 	BigPair G = make_pair( Integer("2"), Integer("4") );
 	
-	BigInt xx=Integer("2");
-	printPair(point_double(G));
-	//~ BigPair ans = ecc_mult(G,xx);
-	//~ printPair(ans);
+	BigInt xx=Integer("9");
+	//~ printPair(point_double(G));
+	BigPair ans = ecc_mult(G,xx);
+	printPair(ans);
 	
 }

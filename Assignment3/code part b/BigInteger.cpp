@@ -434,10 +434,7 @@ char* convert_to_char_pointer(BigInt x)
 
 //~ int main()
 //~ {
-	//~ BigInt a=Integer(455);
-	//~ BigInt b=Integer(232);
-	//~ a=b-a;
-	//~ cout<<a;
-	//~ cout<<convert_to_char_pointer(a);	EL;
-	//~ cout<<a;
+	//~ BigInt a=Integer(8036);
+	//~ BigInt b=Integer(61);
+	//~ cout<<(a%b);
 //~ }

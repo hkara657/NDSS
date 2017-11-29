@@ -26,7 +26,7 @@ BigPair ecc_add_util( BigPair P, BigPair Q, BigInt m)
 	BigPair ans = make_pair(zero,zero);
 	//~ ans.X = m*m - (P.X + Q.X);
 	//~ ans.Y = m*(P.X-ans.X) - P.Y;
-	ans.X = ( (m*m) + MOD - (P.X + Q.X) )%MOD;    //MOD is added because -ve BIGINT is not defined
+	ans.X = ( (m*m) + 2*MOD - (P.X + Q.X) )%MOD;    //2*MOD is added because -ve BIGINT is not defined
 	ans.Y = ( m*(P.X + MOD - ans.X) + MOD - P.Y )%MOD;
 	return ans;
 }
@@ -36,8 +36,8 @@ BigPair point_double(BigPair P)
 	if(P.Y==0) // in point doubling if Y cordinate is 0 then point doubling is INFINITY
 	return ecc_INF;
 	
-	//~ BigInt m = (3*P.X + a) / (2*P.Y);
-	BigInt m = ( (3*P.X + a) * modpow( (2*P.Y), MOD-2, MOD )  )%MOD;
+	//~ BigInt m = (3*P.X*P.X + a) / (2*P.Y);
+	BigInt m = ( (3*P.X*P.X + a) * modpow( (2*P.Y), MOD-2, MOD )  )%MOD;
 	return ecc_add_util(P, P, m);	
 }
 
