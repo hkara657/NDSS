@@ -406,7 +406,7 @@ char* convert_to_char_pointer(BigInt x)
 {
 	//we don't know the number of characters in x even if it is vector<int> as the way it is stored using some efficient way
 	// so we first find the characters and the length of x and then reverse it 
-	char *str=(char *)malloc(1024*sizeof(char));
+	char *str=(char *)calloc(1024,sizeof(char));
 	int i=0;
 	while( x!=Integer(0) )
 	{
