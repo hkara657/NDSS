@@ -180,13 +180,15 @@ void make_connection()
 
 void send_message(char* msg)
 {
+	//~ cout<<"message lenght is"<<strlen(msg);EL;
 	send(socket_id , msg , strlen(msg) , 0 );
 }
 
 char* get_message()
 {
-	char *msg=(char *)malloc(5024*sizeof(char));
+	char *msg=(char *)calloc(5024,sizeof(char));
 	read( socket_id , msg, 5024);
+	//~ cout<<"message lenght is"<<strlen(msg);EL;
 	return msg;
 }
 //--------------------------------------------connection part ends
@@ -210,8 +212,8 @@ int main(int argc, char const *argv[])
 	cout<<"\a A computed is  ";printPair(A);
 	
 	
-	
 	BigPair B = make_pair(zero,zero);
+	
 	B.X = Integer( get_message() );  // receiving B
 	cout<<"B.X is ";cout<<B.X;  EL;
 	
