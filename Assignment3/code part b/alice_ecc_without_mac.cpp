@@ -9,6 +9,7 @@
 #include<arpa/inet.h>
 #include "GeneratePrime.cpp"
 #include <fstream>
+#include <openssl/cmac.h>
 
 #define BigPair pair<BigInt,BigInt>
 #define zero Integer(0)
@@ -168,14 +169,6 @@ void make_connection()
         perror("accept");
         exit(EXIT_FAILURE);
     }
-    //~ valread = read( socket_id , buffer, 1024);
-    //~ printf("%s\n",buffer );
-   
-    //~ send(socket_id , hello , strlen(hello) , 0 );
-    //~ printf("Hello message sent\n");
-      
-    //~ valread = read( socket_id , buffer, 1024);
-    //~ printf("%s\n",buffer );
 }
 
 void send_message(char* msg)
@@ -210,14 +203,25 @@ void printBytes(unsigned char *buf, size_t len) {
 
 unsigned char* convert_to_unsigned_char(char *msg)
 {
-	int len=strlen(msg);
+	int i,len=strlen(msg);
 	unsigned char *tmp = (unsigned char *)calloc(len+1,sizeof(unsigned char));
-	for(int i=0;i<len;i++)
+	for(i=0;i<len;i++)
 	{
 	  tmp[i]=(unsigned char)msg[i];
 	}
+	tmp[i]='\0';
 	return tmp;
 }
+
+int length(unsigned char* tmp)
+{
+	int i=0;
+	while(tmp[i]!='\0')
+	i++;
+	return i;
+}
+
+
 
 unsigned char* get_mac(unsigned char* message)
 {
@@ -233,22 +237,16 @@ unsigned char* get_mac(unsigned char* message)
 	return mact;
 }
 
-int length(unsigned char* tmp)
-{
-	int i=0;
-	while(tmp[i]!='\0')
-	i++;
-	return i;
-}
 
-unsigned char* _merge(unsigned char* mac, unsigned char* msg)
+
+char* _merge(unsigned char* mac, char* msg)
 {
-	int i,len=length(msg);
-	unsigned char *tmp = (unsigned char *)calloc(20+len,sizeof(unsigned char));
+	int i,len=strlen(msg);
+	char *tmp = (char *)calloc(20+len,sizeof(char));
 	
 	for(i=0;i<16;++i)
 	{
-		tmp[i]=mac[i];
+		tmp[i] = (char)mac[i];
 	}
 	
 	for(i=0;i<len;++i)
@@ -262,19 +260,9 @@ unsigned char* _merge(unsigned char* mac, unsigned char* msg)
 
 bool check_mac(unsigned char* msg)
 {
-	// if msg is char and not unsigned char then make it strlen
-	
-	//~ unsigned char *mac = (unsigned char *)calloc(16,sizeof(unsigned char));
-	//~ for(i=0;i<16;++i)
-	//~ mac[i]=msg[i];
-	
 	unsigned char *new_mac;
 	
-	cout<<"\n message in check is"<<&msg[16]<<"---"<<"\n\n";
 	new_mac = get_mac( &msg[16] );  //first 16 bits is mac ans remaining is msg
-	cout<<"\n !!!!!!!!!!new mac is ";printBytes(new_mac,16);cout<<"\n";
-	
-	cout<<"\n old mac is ";printBytes(msg,16);cout<<"\n";
 	
 	for(int i=0;i<16;++i)
 	{
@@ -285,6 +273,7 @@ bool check_mac(unsigned char* msg)
 	return true;
 }
 //------------------------------------MAC ends
+
 
 int main(int argc, char const *argv[])
 {
@@ -297,26 +286,47 @@ int main(int argc, char const *argv[])
 	
 	cout<<"\a Connection Established Successfully \n";
 	
+	
+	////computing A
 	BigInt ta = random_primes(num_bits/2);  // secret key of Alice
-	
-	
 	BigPair A = ecc_mult(G,ta);  // ta*G % MOD   sent by A to B
-	cout<<"\a A computed is  ";printPair(A);
 	
 	
+	/////sending A
+	cout<<"sending A\n";
+	//~ cout<<A.X;EL;
+	unsigned char *mac = get_mac(convert_to_unsigned_char(convert_to_char_pointer(A.X)));
+	char *ax = _merge(mac,convert_to_char_pointer(A.X));
+	send_message( ax );  //sending mac(A.X) || A
+	
+	
+	mac = get_mac(convert_to_unsigned_char(convert_to_char_pointer(A.Y)));
+	char *ay = _merge(mac,convert_to_char_pointer(A.Y));
+	send_message( ay );  //sending mac(A.Y) || A
+	
+	
+	
+	//receing B
+	cout<<"receiving B\n";
 	BigPair B = make_pair(zero,zero);
 	
-	B.X = Integer( get_message() );  // receiving B
-	cout<<"B.X is ";cout<<B.X;  EL;
+	char *tmp = get_message();  // receiving B.X
+	if(check_mac( convert_to_unsigned_char(tmp) ))
+	cout<<"MAC Correct for B.X\n";
+	else
+	{cout<<"MAC wrong for B.X"; exit(0);	}
 	
-	send_message( convert_to_char_pointer(A.X) );  //sending A
-	cout<<"sent a.x";EL;
+	B.X = Integer( &tmp[16] );  
 	
-	B.Y = Integer( get_message() );  // receiving B
-	cout<<"B.Y is ";cout<<B.Y;  EL;
 	
-	send_message( convert_to_char_pointer(A.Y) );  //sending A
-	cout<<"sent b.x";EL;
+	tmp = get_message();    // receiving B.Y
+	if(check_mac( convert_to_unsigned_char(tmp) ))
+	cout<<"MAC Correct for B.Y\n";
+	else
+	{cout<<"MAC wrong for B.Y"; exit(0);	}
+	
+	B.Y = Integer( &tmp[16] );  // receiving B
+	
 	
 	
 	BigPair final_key = ecc_mult(B,ta);

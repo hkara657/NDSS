@@ -1,4 +1,4 @@
-// Server side C/C++ program to demonstrate Socket programming
+// Client side C/C++ program to demonstrate Socket programming
 #include <stdio.h>
 #include <sys/socket.h>
 #include <stdlib.h>
@@ -9,6 +9,7 @@
 #include<arpa/inet.h>
 #include "GeneratePrime.cpp"
 #include <fstream>
+#include <openssl/cmac.h>
 
 #define BigPair pair<BigInt,BigInt>
 #define zero Integer(0)
@@ -20,9 +21,9 @@ BigPair G=make_pair(zero,zero);
 BigInt MOD,a,b,n;
 //-----------------------------a = MOD-Integer("3");  // a is -3, but since we cannot represent -ve in bigint
 
-int num_bits=128;
-int socket_id;
 
+int num_bits=128;
+int socket_id = 0;
 void printPair(BigPair P);
 void initialize_ecc_group(string filename)
 {
@@ -122,60 +123,37 @@ BigPair ecc_mult(BigPair P, BigInt k)
 //--------------------------------------------ecc part ends
 
 //--------------------------------------------connection part starts
+
 void make_connection()
 {
-	int server_fd;
-    struct sockaddr_in address;
-    int opt = 1;
-    int addrlen = sizeof(address);
-    //~ char buffer[1024] = {0};
-    //~ char *hello = (char *)"Hello from server";
-      
-    // Creating socket file descriptor
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+	//~ struct sockaddr_in address;
+    //~ int valread;
+    struct sockaddr_in serv_addr;
+    
+    if ((socket_id = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
-        perror("socket failed");
+        printf("\n Socket creation error \n");
         exit(EXIT_FAILURE);
     }
-      
-    // Forcefully attaching socket to the port 8080
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
-                                                  &opt, sizeof(opt)))
+  
+    memset(&serv_addr, '0', sizeof(serv_addr));
+  
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+    serv_addr.sin_addr.s_addr = inet_addr("10.192.32.14");
+    
+    // Convert IPv4 and IPv6 addresses from text to binary form
+    if(inet_pton(AF_INET, "10.192.32.14", &serv_addr.sin_addr)<=0) 
     {
-        perror("setsockopt");
+        printf("\nInvalid address/ Address not supported \n");
         exit(EXIT_FAILURE);
     }
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = inet_addr("10.192.32.14");
-    //address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons( PORT );
-      
-    // Forcefully attaching socket to the port 8080
-    if (bind(server_fd, (struct sockaddr *)&address, 
-                                 sizeof(address))<0)
+  
+    if (connect(socket_id, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
-        perror("bind failed");
+        printf("\nConnection Failed out\n");
         exit(EXIT_FAILURE);
     }
-    if (listen(server_fd, 3) < 0)
-    {
-        perror("listen");
-        exit(EXIT_FAILURE);
-    }
-    if ((socket_id = accept(server_fd, (struct sockaddr *)&address, 
-                       (socklen_t*)&addrlen))<0)
-    {
-        perror("accept");
-        exit(EXIT_FAILURE);
-    }
-    //~ valread = read( socket_id , buffer, 1024);
-    //~ printf("%s\n",buffer );
-   
-    //~ send(socket_id , hello , strlen(hello) , 0 );
-    //~ printf("Hello message sent\n");
-      
-    //~ valread = read( socket_id , buffer, 1024);
-    //~ printf("%s\n",buffer );
 }
 
 void send_message(char* msg)
@@ -241,14 +219,15 @@ int length(unsigned char* tmp)
 	return i;
 }
 
-unsigned char* _merge(unsigned char* mac, unsigned char* msg)
+
+char* _merge(unsigned char* mac, char* msg)
 {
-	int i,len=length(msg);
-	unsigned char *tmp = (unsigned char *)calloc(20+len,sizeof(unsigned char));
+	int i,len=strlen(msg);
+	char *tmp = (char *)calloc(20+len,sizeof(char));
 	
 	for(i=0;i<16;++i)
 	{
-		tmp[i]=mac[i];
+		tmp[i] = (char)mac[i];
 	}
 	
 	for(i=0;i<len;++i)
@@ -262,19 +241,9 @@ unsigned char* _merge(unsigned char* mac, unsigned char* msg)
 
 bool check_mac(unsigned char* msg)
 {
-	// if msg is char and not unsigned char then make it strlen
-	
-	//~ unsigned char *mac = (unsigned char *)calloc(16,sizeof(unsigned char));
-	//~ for(i=0;i<16;++i)
-	//~ mac[i]=msg[i];
-	
 	unsigned char *new_mac;
 	
-	cout<<"\n message in check is"<<&msg[16]<<"---"<<"\n\n";
 	new_mac = get_mac( &msg[16] );  //first 16 bits is mac ans remaining is msg
-	cout<<"\n !!!!!!!!!!new mac is ";printBytes(new_mac,16);cout<<"\n";
-	
-	cout<<"\n old mac is ";printBytes(msg,16);cout<<"\n";
 	
 	for(int i=0;i<16;++i)
 	{
@@ -288,39 +257,53 @@ bool check_mac(unsigned char* msg)
 
 int main(int argc, char const *argv[])
 {
-	cout<<"ALICE\n";
-    srand(time(NULL));
-    
+	
+	cout<<"BOB\n";
+	srand(time(NULL));
     initialize_ecc_group("abc.txt");
     
 	make_connection();
 	
 	cout<<"\a Connection Established Successfully \n";
 	
-	BigInt ta = random_primes(num_bits/2);  // secret key of Alice
+	BigInt tb = random_primes(num_bits/2);  // secret key of Bob
+	BigPair B = ecc_mult(G,tb);  // tb*G % MOD   sent by B to A	
 	
 	
-	BigPair A = ecc_mult(G,ta);  // ta*G % MOD   sent by A to B
-	cout<<"\a A computed is  ";printPair(A);
+	//////         receing A
+	BigPair A = make_pair(zero,zero);
+	cout<<"receiving A\n";
+	
+	char *tmp = get_message();    // receiving A.X
+	if(check_mac( convert_to_unsigned_char(tmp) ))
+	cout<<"MAC Correct for A.X\n";
+	else
+	{cout<<"MAC wrong for A.X"; exit(0);}
+	
+	A.X = Integer( &tmp[16] ); 
+	//~ cout<<A.X;EL;
+	
+	tmp = get_message();    // receiving A.Y
+	if(check_mac( convert_to_unsigned_char(tmp) ))
+	cout<<"MAC Correct for A.Y\n";
+	else
+	{cout<<"MAC wrong for A.Y"; exit(0);	}
+	
+	A.Y = Integer( &tmp[16] );  
 	
 	
-	BigPair B = make_pair(zero,zero);
+	/////         sending B
+	cout<<"sending B\n";
+	unsigned char *mac = get_mac(convert_to_unsigned_char(convert_to_char_pointer(B.X)));
+	char *bx = _merge(mac, convert_to_char_pointer(B.X));
+	send_message( bx );  //sending mac(B.X) || B
 	
-	B.X = Integer( get_message() );  // receiving B
-	cout<<"B.X is ";cout<<B.X;  EL;
+	mac = get_mac(convert_to_unsigned_char(convert_to_char_pointer(B.Y)));
+	char *by = _merge(mac, convert_to_char_pointer(B.Y));
+	send_message( by );  //sending mac(B.Y) || B
 	
-	send_message( convert_to_char_pointer(A.X) );  //sending A
-	cout<<"sent a.x";EL;
-	
-	B.Y = Integer( get_message() );  // receiving B
-	cout<<"B.Y is ";cout<<B.Y;  EL;
-	
-	send_message( convert_to_char_pointer(A.Y) );  //sending A
-	cout<<"sent b.x";EL;
-	
-	
-	BigPair final_key = ecc_mult(B,ta);
-	cout<<"\a key with Alice is    ";	printPair(final_key);	EL;
+	BigPair final_key = ecc_mult(A,tb);
+	cout<<"\a key with Bob is    ";	printPair(final_key);	EL;
 	
     return 0;
 }
