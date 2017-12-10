@@ -321,6 +321,7 @@ int main()
 	KeyExpansion();
 
 	// The next function call encrypts the PlainText with the Key using AES algorithm.
+	
 	Cipher();
 
 	// Output the encrypted text.

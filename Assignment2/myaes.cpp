@@ -57,20 +57,31 @@ void xor_msg(char *ans, char *tmp, int l)
 
 int main()
 {
-	unsigned char *key = (unsigned char *)"0123456789012345678901234567890155580909";
-	unsigned char *iv = (unsigned char *)"0123456789012345678901234567890155580909\0";
+	unsigned char *key = (unsigned char *)"0123456789012345678901234567890155580909\0";
+	unsigned char *iv = (unsigned char *)"0123456789012345\0";
 	unsigned char *inp = (unsigned char *)"0123456789012345";
 	
 	unsigned char *plaintext = (unsigned char *)"The quick brown fox\0";
 	cout<<length(plaintext)<<"\n";
-	unsigned char ciphertext[1000]={0};
-	int ciphertext_len;
+	//~ unsigned char ciphertext[1000]={0};
+	//~ int ciphertext_len;
+	
+	
+	
+	//Assuming the message length is multiple of S bits
+	
+	//~ for(i=0;i<num_blocks;++i)
+	//~ {
+		//~ unsigned char ciphertext[1000]={0};
+		//~ int ciphertext_len;
+		//~ ciphertext_len = encrypt (inp, strlen ((char *)inp)-1, key, iv,ciphertext);
+	//~ }
 	
 	ciphertext_len = encrypt (inp, strlen ((char *)inp)-1, key, iv,ciphertext);
 	unsigned char ciphertext2[128]={0};
-    ciphertext_len = encrypt (ciphertext, strlen ((char *)ciphertext)-1, key, iv,ciphertext2);
-    unsigned char ciphertext3[128]={0};
-    ciphertext_len = encrypt (ciphertext2, strlen ((char *)ciphertext2)-1, key, iv,ciphertext3);
+    //~ ciphertext_len = encrypt (ciphertext, strlen ((char *)ciphertext)-1, key, iv,ciphertext2);
+    //~ unsigned char ciphertext3[128]={0};
+    //~ ciphertext_len = encrypt (ciphertext2, strlen ((char *)ciphertext2)-1, key, iv,ciphertext3);
     
     
     //~ std::cout << "a = " << typeid(std::bitset<8>(5)).name()  << std::endl;
